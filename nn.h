@@ -99,14 +99,6 @@ void mat_dot(Mat dst, Mat a, Mat b){
     }
 }
 
-void mat_fill(Mat m, float x){
-    for (size_t i = 0; i < m.rows; i++){
-        for (size_t j = 0; j < m.cols; j++){
-            MAT_AT(m,i,j) = x;
-        }
-    }
-}
-
 Mat mat_row(Mat m, size_t row){
     return (Mat){
         .rows = 1,
@@ -160,6 +152,14 @@ void mat_print(Mat m,const char *name, size_t pad){
     
 }
 
+void mat_fill(Mat m, float x){
+    for (size_t i = 0; i < m.rows; i++){
+        for (size_t j = 0; j < m.cols; j++){
+            MAT_AT(m,i,j) = x;
+        }
+    }
+}
+
 void mat_rand(Mat m,float low, float high){
     for (size_t i = 0; i < m.rows; i++){
         for (size_t j = 0; j < m.cols; j++){
@@ -178,7 +178,7 @@ NN nn_alloc(size_t *arch, size_t arch_count){
     NN_ASSERT(nn.ws != NULL);
     nn.bs = NN_MALLOC(sizeof(*nn.bs)*nn.count);
     NN_ASSERT(nn.bs != NULL);
-    nn.as = NN_MALLOC(sizeof(*nn.as)*nn.count);
+    nn.as = NN_MALLOC(sizeof(*nn.as)*nn.count + 1);
     NN_ASSERT(nn.as != NULL);
 
     nn.as[0] = mat_alloc(1, arch[0]);
@@ -253,31 +253,6 @@ float nn_cost(NN nn, Mat in, Mat out){
     
 }
 
-void nn_fininte_diff(NN nn, NN g, float esp, Mat in, Mat out){
-    float saved;
-    float c = nn_cost(nn, in, out);
-
-    for (size_t i = 0; i < nn.count; i++){
-        for (size_t j = 0; j < nn.ws[i].rows; j++){
-            for (size_t k = 0; k < nn.ws[i].cols; k++){
-                saved = MAT_AT(nn.ws[i], j, k);
-                MAT_AT(nn.ws[i], j, k) += esp;
-                MAT_AT(g.ws[i], j, k) = (nn_cost(nn, in,out) - c)/esp;
-                MAT_AT(nn.ws[i], j, k) = saved;
-            }
-        }
-
-        for (size_t j = 0; j < nn.bs[i].rows; j++){
-            for (size_t k = 0; k < nn.bs[i].cols; k++){
-                saved = MAT_AT(nn.bs[i], j, k);
-                MAT_AT(nn.bs[i], j, k) += esp;
-                MAT_AT(g.bs[i], j, k) = (nn_cost(nn, in,out) - c)/esp;
-                MAT_AT(nn.bs[i], j, k) = saved;
-            }
-        }
-    }   
-}
-
 void nn_backprop(NN nn, NN g, Mat in, Mat out){
     NN_ASSERT(in.rows == out.rows);
     NN_ASSERT(NN_OUTPUT(nn).cols == out.cols);
@@ -325,6 +300,31 @@ void nn_backprop(NN nn, NN g, Mat in, Mat out){
             } 
         }
     }
+}
+
+void nn_fininte_diff(NN nn, NN g, float esp, Mat in, Mat out){
+    float saved;
+    float c = nn_cost(nn, in, out);
+
+    for (size_t i = 0; i < nn.count; i++){
+        for (size_t j = 0; j < nn.ws[i].rows; j++){
+            for (size_t k = 0; k < nn.ws[i].cols; k++){
+                saved = MAT_AT(nn.ws[i], j, k);
+                MAT_AT(nn.ws[i], j, k) += esp;
+                MAT_AT(g.ws[i], j, k) = (nn_cost(nn, in,out) - c)/esp;
+                MAT_AT(nn.ws[i], j, k) = saved;
+            }
+        }
+
+        for (size_t j = 0; j < nn.bs[i].rows; j++){
+            for (size_t k = 0; k < nn.bs[i].cols; k++){
+                saved = MAT_AT(nn.bs[i], j, k);
+                MAT_AT(nn.bs[i], j, k) += esp;
+                MAT_AT(g.bs[i], j, k) = (nn_cost(nn, in,out) - c)/esp;
+                MAT_AT(nn.bs[i], j, k) = saved;
+            }
+        }
+    }   
 }
 
 void nn_weight_update(NN nn, NN g, float lr){
