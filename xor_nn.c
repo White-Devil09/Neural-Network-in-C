@@ -15,7 +15,6 @@ int main(){
     size_t stride = 3;
     size_t n = sizeof(td)/sizeof(td[0])/stride;
 
-    float esp = 1e-2;
     float lr = 0.1f;
     size_t iterations = 2e6;
 
@@ -43,7 +42,12 @@ int main(){
     printf("_______________Training________________\n");
 
     for (size_t i = 0; i < iterations; i++){
-        nn_fininte_diff(nn,g,esp,ti,to);
+        #if 0
+            float esp = 1e-2;
+            nn_fininte_diff(nn,g,esp,ti,to);
+        #else
+            nn_backprop(nn,g,ti,to);
+        #endif
         nn_weight_update(nn,g,lr);
         if(i%(iterations/10) == 0 || i == iterations-1) printf("Epoch : [%ld/%ld], training_loss : %f\n",i+1,iterations,nn_cost(nn,ti,to));
     }
