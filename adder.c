@@ -2,7 +2,7 @@
 #define NN_IMPLEMENTATION
 #include "nn.h"
 
-#define BITS 1
+#define BITS 2
 
 int main(){
     srand(time(0));
@@ -63,13 +63,12 @@ int main(){
                 size_t z = 0;
                 for (size_t j = 0; j < BITS; j++){
                     size_t bit = MAT_AT(NN_OUTPUT(nn),0,j)>0.5f;
-                    z |= bit>>j;
+                    z |= bit<<j;
                 }
                 printf("%ld\n",z); 
             }
         }
     }
-    
     
     return 0;
 }

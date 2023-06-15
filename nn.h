@@ -38,7 +38,7 @@ void mat_dot(Mat dst, Mat a, Mat b);
 void mat_sum(Mat dst, Mat a);
 void mat_sig(Mat m);
 void mat_print(Mat m,const char *name, size_t pad);
-#define MAT_PRINT(m) mat_print(m, #m, 2)
+#define MAT_PRINT(m) mat_print(m, #m, 0)
 
 typedef struct{
     size_t count;
@@ -178,7 +178,7 @@ NN nn_alloc(size_t *arch, size_t arch_count){
     NN_ASSERT(nn.ws != NULL);
     nn.bs = NN_MALLOC(sizeof(*nn.bs)*nn.count);
     NN_ASSERT(nn.bs != NULL);
-    nn.as = NN_MALLOC(sizeof(*nn.as)*nn.count + 1);
+    nn.as = NN_MALLOC(sizeof(*nn.as)*(nn.count + 1));
     NN_ASSERT(nn.as != NULL);
 
     nn.as[0] = mat_alloc(1, arch[0]);
